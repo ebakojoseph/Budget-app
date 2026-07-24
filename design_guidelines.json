@@ -1,0 +1,150 @@
+{
+  "app_name": "BudgetTracker",
+  "personality": "1 iOS-Native Clean",
+  "personality_one_liner": "A trustworthy, balance-first financial companion with clean typography, calm natural tones, and generous spacing that makes tracking money feel effortless and controlled.",
+  "color": {
+    "surface": "#F9F9F7",
+    "onSurface": "#1A1C1A",
+    "surfaceSecondary": "#FFFFFF",
+    "onSurfaceSecondary": "#1A1C1A",
+    "surfaceTertiary": "#EFEFEA",
+    "onSurfaceTertiary": "#434744",
+    "surfaceInverse": "#1A1C1A",
+    "onSurfaceInverse": "#F9F9F7",
+    "brand": "#4B6955",
+    "brandPrimary": "#4B6955",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#E1E8E3",
+    "onBrandSecondary": "#2C4033",
+    "brandTertiary": "#F0F5F2",
+    "onBrandTertiary": "#3B5241",
+    "success": "#3A6044",
+    "onSuccess": "#FFFFFF",
+    "warning": "#B37A2C",
+    "onWarning": "#FFFFFF",
+    "error": "#AA4235",
+    "onError": "#FFFFFF",
+    "info": "#5D635E",
+    "onInfo": "#FFFFFF",
+    "border": "#E6E6E3",
+    "borderStrong": "#C7C7C2",
+    "divider": "#EBEBE8"
+  },
+  "typography": {
+    "displayFontFamily": "Plus Jakarta Sans",
+    "textFontFamily": "Plus Jakarta Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous padding around content. Never flush to screen edges. Use md (12) gap for grids and lg (16) or xl (24) for screen padding. Handle spacing correctly without extra unnecessary margins.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": 1,
+  "navigation": "bottom_tabs",
+  "icon_set": "Ionicons",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Sticky headers over scrolling content",
+      "Bottom tab bar",
+      "Featured/Hero cards over brand-tinted or abstract photo backdrop"
+    ],
+    "dont's": [
+      "Form fields",
+      "Cards in dense lists",
+      "Every button"
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Dashboard",
+      "purpose": "Monthly summary and quick budget tracking at a glance.",
+      "states": {
+        "loading": "Centered spinner over surface",
+        "empty": "N/A - Dashboard always shows at least zero balances.",
+        "error": "Readable message + Retry button taking full screen"
+      },
+      "layout": "Top balance hero card featuring `dashboard_hero` image, a gradient scrim (transparent to 70% surfaceInverse), and ending/starting balances overlaid in white. Below this, a horizontal scroll or tight vertical list of Budget Categories (planned vs actual) as progress cards. Floating Quick Add FAB (brandPrimary) above the tab bar."
+    },
+    {
+      "name": "Transactions",
+      "purpose": "Log and review all incoming and outgoing money.",
+      "states": {
+        "loading": "Centered spinner",
+        "empty": "Empty wallet illustration (`empty_wallet`), short sentence 'No transactions yet', and a primary 'Add Transaction' CTA.",
+        "error": "Readable message + Retry button taking full screen"
+      },
+      "layout": "Sticky glassmorphism header over a segmented control for Income vs Expenses. Below, a list of transactions grouped by date. Each row has a brandTertiary tinted rounded icon square, transaction title, and amount."
+    },
+    {
+      "name": "Accounts",
+      "purpose": "Track balances across multiple financial accounts over time.",
+      "states": {
+        "loading": "Centered spinner",
+        "empty": "Empty state illustration + 'No accounts added' + 'Add Account' CTA.",
+        "error": "Readable message + Retry button taking full screen"
+      },
+      "layout": "Net worth summary at the top. A vertical list of accounts categorized by type (Registered, Crypto, Cash). Each account card is width 100% displaying account name, balance, and change over time."
+    },
+    {
+      "name": "Investments",
+      "purpose": "Visualize investment allocation according to percentage rules.",
+      "states": {
+        "loading": "Centered spinner",
+        "empty": "Empty state illustration + 'Setup allocations' CTA.",
+        "error": "Readable message + Retry button taking full screen"
+      },
+      "layout": "Donut chart visualizing current vs planned allocation (EF 5%, Grow 15%, FHSA 30%, etc.). Below the chart, a list of investment buckets with target monetary amounts derived from current income and their respective percentages."
+    }
+  ],
+  "images": {
+    "dashboard_hero": {
+      "url": "https://images.pexels.com/photos/4046791/pexels-photo-4046791.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Abstract watercolor sage green wavy pattern for hero background"
+    },
+    "empty_wallet": {
+      "url": "https://images.unsplash.com/photo-1627123424574-724758594e93?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzR8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwd2FsbGV0JTIwZmxhdCUyMGlsbHVzdHJhdGlvbnxlbnwwfHx8fDE3ODI5MTg3NTV8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Floating brown leather wallet minimalist illustration"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the color palette. Blue, indigo, and purple are BANNED. The app uses warm sand (F9F9F7) and sage green (4B6955).",
+    "Use Space Grotesk for prominent numbers (balances, amounts) to give a slight technical/financial feel while using Plus Jakarta Sans for the rest of the text.",
+    "Do NOT use font weights above 500 anywhere in the app. Use font size to establish hierarchy instead of bold weights.",
+    "The Dashboard hero card MUST use the `dashboard_hero` image layered with an expo-linear-gradient scrim (transparent at 0% to 70% surfaceInverse at 100%) so that the balance text is fully readable over it.",
+    "Implement a 'Quick Add' FAB for transactions. It should sit above the tab bar, anchored to the bottom right, and use `brandPrimary` with glassmorphism.",
+    "Cards should fill the horizontal space using single column `width: '100%'` with `lg` screen padding (no half-width-on-the-left orphans).",
+    "Avoid emoji everywhere in the app. Use Ionicons.",
+    "Use @expo/vector-icons (Ionicons). Every screen should have consistent icon styles (e.g., all outlined except for active tab bar icons)."
+  ]
+}
