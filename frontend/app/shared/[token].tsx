@@ -210,19 +210,21 @@ export default function SharedBudget() {
           <Pressable style={styles.sheetBackdrop} onPress={() => setEditing(null)}>
             <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
               <Text style={styles.sheetTitle}>{editing?.name} planned</Text>
-              <TextInput
-                testID="shared-edit-input"
-                value={editVal}
-                onChangeText={setEditVal}
-                keyboardType="decimal-pad"
-                style={styles.input}
-                autoFocus
-                placeholder="0.00"
-                placeholderTextColor={theme.colors.onSurfaceTertiary}
-              />
-              <Pressable testID="shared-edit-save" onPress={saveEdit} style={styles.btn}>
-                <Text style={styles.btnText}>Save</Text>
-              </Pressable>
+              <View style={styles.sheetBody}>
+                <TextInput
+                  testID="shared-edit-input"
+                  value={editVal}
+                  onChangeText={setEditVal}
+                  keyboardType="decimal-pad"
+                  style={styles.input}
+                  autoFocus
+                  placeholder="0.00"
+                  placeholderTextColor={theme.colors.onSurfaceTertiary}
+                />
+                <Pressable testID="shared-edit-save" onPress={saveEdit} style={styles.btn}>
+                  <Text style={styles.btnText}>Save</Text>
+                </Pressable>
+              </View>
             </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
@@ -361,7 +363,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
     padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
   },
+  sheetBody: {},
   sheetTitle: {
     fontFamily: theme.font.display,
     fontSize: 16,
