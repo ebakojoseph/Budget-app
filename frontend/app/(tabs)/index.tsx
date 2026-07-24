@@ -96,6 +96,29 @@ export default function Dashboard() {
                 <Ionicons name="chevron-down" size={14} color={theme.colors.onSurfaceInverse} />
               </Pressable>
             </View>
+            <View style={styles.heroActions}>
+              <Pressable
+                testID="header-charts-btn"
+                onPress={() => router.push("/charts")}
+                style={styles.iconBtn}
+              >
+                <Ionicons name="bar-chart-outline" size={18} color={theme.colors.onSurfaceInverse} />
+              </Pressable>
+              <Pressable
+                testID="header-budgets-btn"
+                onPress={() => router.push("/budgets")}
+                style={styles.iconBtn}
+              >
+                <Ionicons name="folder-outline" size={18} color={theme.colors.onSurfaceInverse} />
+              </Pressable>
+              <Pressable
+                testID="header-settings-btn"
+                onPress={() => router.push("/settings")}
+                style={styles.iconBtn}
+              >
+                <Ionicons name="person-outline" size={18} color={theme.colors.onSurfaceInverse} />
+              </Pressable>
+            </View>
           </View>
 
           <View style={styles.heroBalanceRow}>
@@ -308,7 +331,19 @@ const styles = StyleSheet.create({
   heroTop: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  heroActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.15)",
     alignItems: "center",
+    justifyContent: "center",
   },
   heroLabel: {
     color: "rgba(255,255,255,0.75)",

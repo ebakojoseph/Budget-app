@@ -1,0 +1,45 @@
+{
+  "summary": "BudgetTracker v2 (Emergent Google Auth + owner scoping + transfers + snapshots + rollover + budgets/share + charts + Excel export) fully tested. Backend: 15/15 pytest tests PASS in /app/backend/tests/test_budget_api_v2.py — Auth (Bearer + 401 handling + /auth/session validation), owner-scoped list endpoints (categories/accounts/transactions/allocations), transfer creation moves balances (500->350, 100->250) and deletion reverts them, transfer requires from/to (400 if missing), balance snapshots upsert & set account balance, rollover copies categories to new month and sets brought_forward, budget CRUD + share_token generation (read-only 403 on PUT, writable 200 on PUT), unshare removes share_token, /api/charts returns net_worth_series/spending_by_category/planned_vs_actual/latest_month, /api/export/excel returns valid .xlsx (PK header, 3 sheets Summary/Transactions/Accounts). Frontend (375x667 mobile viewport, token 'cHtv5m1-...' injected into localStorage.budget_session_token): /login renders google-signin-btn without crash; injected token unlocks the (tabs) Dashboard showing $54,690.62 end-balance and $383.16 expense / $6,162.72 income; header-charts-btn/header-budgets-btn/header-settings-btn visible & tappable; Accounts tab shows accounts-fab, tapping opens menu-add-account/menu-add-tx/menu-transfer; transfer editor renders xfer-amount/xfer-from-btn/xfer-to-btn/xfer-save; tapping an account row opens account-detail with acc-add-tx/acc-add-transfer/acc-eom-btn; EOM modal renders eom-month/eom-balance/eom-save; Charts screen renders LineChart + PieChart + BarChart with 'Net worth over time', 'Spending by category', 'Planned vs actual' sections; Budgets screen renders budget-new + create modal with new-budget-name/new-budget-month-*/new-budget-save; Settings screen renders settings-logout. Shared route /shared/<token> renders public viewer with 'Editable' badge (write=true), shared-tab-expense/shared-tab-income switch lists correctly, tapping shared-cat-<id> opens edit modal (shared-edit-input) — save button (shared-edit-save) is present but sits below the mobile fold when input focus scrolls. Deprecated packages detected: none directly, but react-native-gifted-charts internally uses deprecated TouchableMixin and props.pointerEvents (non-blocking on RN Web).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SharedEditModal", "issue": "On 375x667 viewport the shared-edit-save button falls outside the viewport when the input is focused; user must scroll the modal to tap Save. Reference: /app/frontend/app/shared/[token].tsx:223", "testID": "shared-edit-save", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "shared/[token]", "issues": ["Edit modal likely needs KeyboardAvoidingView + ScrollView + sticky footer so shared-edit-save stays visible when keyboard opens."]}
+    ],
+    "react_native_issues": [
+      {"component": "styles", "issue": "Deprecation warnings still present in console: 'shadow*' style props deprecated (use boxShadow); 'props.pointerEvents' deprecated (use style.pointerEvents). Non-blocking on RN Web."},
+      {"component": "react-native-gifted-charts", "issue": "Charts screen triggers 'TouchableMixin is deprecated. Please use Pressable.' and multiple 'Unknown event handler property onStartShouldSetResponder/onResponderTerminationRequest/onResponderGrant/onResponderMove/onResponderRelease/onPressOut' console errors — coming from the library, non-fatal on RN Web. Reference: /app/frontend/app/charts.tsx"}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_budget_api_v2.py",
+    "/app/test_reports/pytest/pytest_results_v2.xml"
+  ],
+  "action_items": [
+    "(Medium) Wrap the shared-edit modal in KeyboardAvoidingView / put the shared-edit-save button in a sticky footer so it remains visible on 375-wide screens (/app/frontend/app/shared/[token].tsx).",
+    "(Low) Modernize 'shadow*' -> 'boxShadow' and 'props.pointerEvents' -> 'style.pointerEvents' across styles.",
+    "(Low, external) Track upstream react-native-gifted-charts fix for TouchableMixin/Responder event handler console noise."
+  ],
+  "critical_code_review_comments": [
+    "server.py grew to ~880 lines — still workable but should be split into routers (auth, budgets, transactions, exports) if more features are added.",
+    "MongoDB _id excluded via projection everywhere — good.",
+    "user_sessions has TTL index on expires_at — good; session cleanup automatic.",
+    "seed() legacy data (owner_id=None) is claimed only by the FIRST user to log in — subsequent testers with new tokens see empty data unless they were seeded manually. Consider documenting this in test_credentials.md and providing a per-user seed endpoint for QA.",
+    "Transfer balance math verified idempotent for create/delete but NOT tested for UPDATE with switched from/to accounts — recommend a follow-up test.",
+    "share_token uniqueness is not enforced by a unique index — collision probability is astronomically low but consider {unique:true, sparse:true} on budgets.share_token."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_budget_api_v2.py (new file)",
+    "/app/test_reports/iteration_2.json",
+    "/app/test_reports/pytest/pytest_results_v2.xml"
+  ],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% of critical flows (1 minor modal-viewport UX issue on shared edit)"},
+  "seed_data_creation": "Used provided QA token cHtv5m1-IZdrS1H26aYb5aohXlSyY-LeI4-0mYlNuFE (user_c17ad6287ab0). Test data created during pytest is prefixed TEST_ and cleaned up in the same tests.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Token cHtv5m1-IZdrS1H26aYb5aohXlSyY-LeI4-0mYlNuFE remains valid for 7 days from creation (2026-07-24). Frontend web session key is 'budget_session_token' (localStorage). Existing tests file /app/backend/tests/test_budget_api.py is stale v1 (pre-auth) and should be deleted or ignored; use test_budget_api_v2.py. Charts screen uses react-native-gifted-charts which emits console warnings but works. Shared modal save button viewport issue is the only real UX bug found.",
+  "rca_of_issue": "shared-edit-save UX: modal content in /app/frontend/app/shared/[token].tsx is not wrapped in KeyboardAvoidingView / ScrollView and the button sits at the bottom of the modal. On 375x667 viewport once the input receives focus (or the modal is rendered close to bottom-anchored), the Save button is pushed below the fold, requiring a scroll gesture to reach it. Fix: wrap modal body in KeyboardAvoidingView (behavior='padding') and add a fixed-position footer for the Save/Cancel buttons."
+}

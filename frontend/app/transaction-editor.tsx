@@ -16,7 +16,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { theme } from "@/src/theme";
-import { api, Category, TxType, currentMonth } from "@/src/api";
+import { api, Category, TxType, currentMonth, Account } from "@/src/api";
 
 export default function TransactionEditor() {
   const params = useLocalSearchParams<{
@@ -27,6 +27,7 @@ export default function TransactionEditor() {
     category?: string;
     type?: TxType;
     month?: string;
+    account_id?: string;
   }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -38,23 +39,44 @@ export default function TransactionEditor() {
   const [description, setDescription] = useState(params.description || "");
   const [category, setCategory] = useState(params.category || "");
   const [date, setDate] = useState(params.date || new Date().toISOString().slice(0, 10));
+  const [accountId, setAccountId] = useState<string | null>(params.account_id || null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [showCatPicker, setShowCatPicker] = useState(false);
+  const [showAccPicker, setShowAccPicker] = useState(false);
 
   useEffect(() => {
     api.listCategories(initialMonth).then(setCategories).catch(() => {});
+    api.listAccounts().then(setAccounts).catch(() => {});
   }, [initialMonth]);
 
-  const catOptions = useMemo(() => categories.filter((c) => c.type === type), [categories, type]);
+  const catOptions = useMemo(
+    () => categories.filter((c) => c.type === (type === "transfer" ? "expense" : type)),
+    [categories, type]
+  );
+  const accountName = accounts.find((a) => a.id === accountId)?.name;
 
   const save = async () => {
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) return;
     if (!category) return;
     if (isEdit) {
-      await api.updateTransaction(params.id!, { date, amount: amt, description, category });
+      await api.updateTransaction(params.id!, {
+        date,
+        amount: amt,
+        description,
+        category,
+        account_id: accountId || undefined,
+      });
     } else {
-      await api.createTransaction({ date, amount: amt, description, category, type });
+      await api.createTransaction({
+        date,
+        amount: amt,
+        description,
+        category,
+        type: type as "expense" | "income",
+        account_id: accountId || undefined,
+      });
     }
     router.back();
   };
@@ -139,6 +161,24 @@ export default function TransactionEditor() {
           </Pressable>
         </Field>
 
+        <Field label="Account (optional)">
+          <Pressable
+            testID="tx-account-btn"
+            onPress={() => setShowAccPicker(true)}
+            style={styles.selectRow}
+          >
+            <Text
+              style={[
+                styles.selectText,
+                { color: accountName ? theme.colors.onSurface : theme.colors.onSurfaceTertiary },
+              ]}
+            >
+              {accountName || "None"}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
+          </Pressable>
+        </Field>
+
         <Field label="Description">
           <TextInput
             testID="tx-description"
@@ -164,10 +204,7 @@ export default function TransactionEditor() {
         <Pressable
           testID="tx-save"
           onPress={save}
-          style={[
-            styles.saveBtn,
-            (!amount || !category) && { opacity: 0.5 },
-          ]}
+          style={[styles.saveBtn, (!amount || !category) && { opacity: 0.5 }]}
         >
           <Text style={styles.saveBtnText}>{isEdit ? "Save changes" : "Add transaction"}</Text>
         </Pressable>
@@ -200,6 +237,41 @@ export default function TransactionEditor() {
                   )}
                 </Pressable>
               )}
+              ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: theme.colors.divider }} />}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        transparent
+        visible={showAccPicker}
+        animationType="slide"
+        onRequestClose={() => setShowAccPicker(false)}
+      >
+        <Pressable style={styles.sheetBackdrop} onPress={() => setShowAccPicker(false)}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.sheetTitle}>Select account</Text>
+            <FlatList
+              data={[{ id: "__none__", name: "None", group: "" } as Account, ...accounts]}
+              keyExtractor={(a) => a.id}
+              renderItem={({ item }) => {
+                const val = item.id === "__none__" ? null : item.id;
+                const selected = accountId === val;
+                return (
+                  <Pressable
+                    testID={`acc-option-${item.id}`}
+                    onPress={() => {
+                      setAccountId(val);
+                      setShowAccPicker(false);
+                    }}
+                    style={styles.catOpt}
+                  >
+                    <Text style={styles.catOptText}>{item.name}</Text>
+                    {selected && <Ionicons name="checkmark" size={18} color={theme.colors.brandPrimary} />}
+                  </Pressable>
+                );
+              }}
               ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: theme.colors.divider }} />}
             />
           </Pressable>

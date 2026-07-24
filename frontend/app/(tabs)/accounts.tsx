@@ -7,6 +7,7 @@ import {
   Pressable,
   RefreshControl,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,6 +31,7 @@ export default function AccountsScreen() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showFabMenu, setShowFabMenu] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -50,6 +52,10 @@ export default function AccountsScreen() {
   );
 
   const netWorth = accounts.reduce((s, a) => s + (a.balance || 0), 0);
+  const totalChange = accounts.reduce(
+    (s, a) => s + (a.balance - (a.brought_forward || 0)),
+    0,
+  );
 
   const groups: Record<string, Account[]> = {};
   for (const a of accounts) {
@@ -59,7 +65,7 @@ export default function AccountsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 140 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -78,7 +84,18 @@ export default function AccountsScreen() {
             <Text style={styles.netValue} testID="net-worth">
               {fmtMoney(netWorth)}
             </Text>
-            <Text style={styles.netHint}>{accounts.length} accounts</Text>
+            <View style={styles.netRow}>
+              <Text style={styles.netHint}>{accounts.length} accounts</Text>
+              <Text
+                style={[
+                  styles.netChange,
+                  { color: totalChange >= 0 ? "#B9E4C9" : "#F0B9AF" },
+                ]}
+              >
+                {totalChange >= 0 ? "+" : ""}
+                {fmtMoney(totalChange)} this period
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -107,13 +124,8 @@ export default function AccountsScreen() {
                       testID={`account-row-${a.id}`}
                       onPress={() =>
                         router.push({
-                          pathname: "/account-editor",
-                          params: {
-                            id: a.id,
-                            name: a.name,
-                            group: a.group,
-                            balance: String(a.balance),
-                          },
+                          pathname: "/account-detail",
+                          params: { id: a.id },
                         })
                       }
                       style={styles.accCard}
@@ -150,14 +162,75 @@ export default function AccountsScreen() {
         )}
       </ScrollView>
 
+      {/* Multi-option FAB */}
       <Pressable
-        testID="add-account-fab"
+        testID="accounts-fab"
         style={[styles.fab, { bottom: insets.bottom + 84 }]}
-        onPress={() => router.push("/account-editor")}
+        onPress={() => setShowFabMenu(true)}
       >
         <Ionicons name="add" size={28} color={theme.colors.onBrandPrimary} />
       </Pressable>
+
+      <Modal
+        transparent
+        visible={showFabMenu}
+        animationType="fade"
+        onRequestClose={() => setShowFabMenu(false)}
+      >
+        <Pressable style={styles.menuBackdrop} onPress={() => setShowFabMenu(false)}>
+          <View style={[styles.menuCard, { bottom: insets.bottom + 150 }]}>
+            <MenuItem
+              testID="menu-add-account"
+              icon="wallet-outline"
+              label="Add account"
+              onPress={() => {
+                setShowFabMenu(false);
+                router.push("/account-editor");
+              }}
+            />
+            <MenuItem
+              testID="menu-add-tx"
+              icon="add-circle-outline"
+              label="Add transaction"
+              onPress={() => {
+                setShowFabMenu(false);
+                router.push("/transaction-editor");
+              }}
+            />
+            <MenuItem
+              testID="menu-transfer"
+              icon="swap-horizontal-outline"
+              label="Transfer between accounts"
+              onPress={() => {
+                setShowFabMenu(false);
+                router.push("/transfer-editor");
+              }}
+            />
+          </View>
+        </Pressable>
+      </Modal>
     </View>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  onPress,
+  testID,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  testID: string;
+}) {
+  return (
+    <Pressable testID={testID} onPress={onPress} style={styles.menuItem}>
+      <View style={styles.menuIcon}>
+        <Ionicons name={icon} size={18} color={theme.colors.brandPrimary} />
+      </View>
+      <Text style={styles.menuLabel}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -188,11 +261,19 @@ const styles = StyleSheet.create({
     fontSize: 32,
     marginTop: 4,
   },
+  netRow: {
+    marginTop: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   netHint: {
     fontFamily: theme.font.text,
     color: "rgba(255,255,255,0.6)",
     fontSize: 12,
-    marginTop: 6,
+  },
+  netChange: {
+    fontFamily: theme.font.numeric,
+    fontSize: 12,
   },
 
   groupBlock: { marginBottom: theme.spacing.lg },
@@ -269,5 +350,44 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
+  },
+
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  menuCard: {
+    position: "absolute",
+    right: theme.spacing.lg,
+    minWidth: 240,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: theme.radius.md,
+    padding: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.sm,
+  },
+  menuIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: theme.colors.brandTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuLabel: {
+    fontFamily: theme.font.text,
+    color: theme.colors.onSurface,
+    fontSize: 14,
   },
 });
